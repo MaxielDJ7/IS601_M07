@@ -1,0 +1,41 @@
+name: CI - Build and Test QR Code App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build Docker images defined in docker-compose.yml
+      - name: Build Docker Compose services
+        run: docker compose build
+
+      # Run QR Code app service with environment variables
+      - name: Run QR Code App
+        run: |
+          docker compose up -d
+          docker compose logs qr_code_app
+
+      # Verify the app ran successfully (example test)
+      - name: Validate container output
+        run: |
+          docker compose ps
+          # Optional: add a real test, for example:
+          # docker compose exec -T qr_code_app pytest
+
+      # Shut down containers after test
+      - name: Clean up
+        if: always()
+        run: docker compose down
